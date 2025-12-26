@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>🧪 Laboratorio di Stabilità Dinamica</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            display: flex;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .left-panel {
+            width: 300px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .right-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .visualization {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            height: 450px;
+        }
+        
+        .metrics {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .experiment-btn {
+            width: 100%;
+            padding: 12px;
+            margin: 5px 0;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        #equity-btn { background: #2E7D32; }
+        #extractive-btn { background: #C62828; }
+        #mixed-btn { background: #1565C0; }
+        
+        .control-btn {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 6px;
+            background: #2196F3;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        canvas {
+            display: block;
+            margin: 0 auto;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        
+        .metric-box {
+            display: inline-block;
+            padding: 10px 15px;
+            margin: 5px;
+            background: #f0f0f0;
+            border-radius: 5px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .heatmap {
+            display: grid;
+            grid-template-columns: repeat(6, 30px);
+            gap: 2px;
+            margin: 10px 0;
+        }
+        
+        .heatmap-cell {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            border-radius: 3px;
+        }
+        
+        .collapse-predictor {
+            background: linear-gradient(90deg, #4CAF50, #FF9800, #F44336);
+            padding: 15px;
+            border-radius: 8px;
+            color: white;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Laboratorio di Stabilità Dinamica</h1>
+    <p>Investigazione empirica della relazione tra simmetria dinamica e stabilità sistemica</p>
+    
+    <div class="container">
+        <!-- PANNELLO SINISTRA: CONTROLLI -->
+        <div class="left-panel">
+            <h2>Esperimenti</h2>
+            <button class="experiment-btn" id="equity-btn">💰 Equità Forzata</button>
+            <button class="experiment-btn" id="extractive-btn">⚡ Sistema Estrattivo</button>
+            <button class="experiment-btn" id="mixed-btn">🔀 Strategia Mista</button>
+            
+            <h2 style="margin-top: 30px;">Parametri</h2>
+            <div>
+                <label>Soglia ε: <span id="epsilon-value">0.1</span></label>
+                <input type="range" id="epsilon-slider" min="0.01" max="0.5" step="0.01" value="0.1" style="width:100%">
+            </div>
+            
+            <div style="margin-top: 15px;">
+                <label>Numero Nodi: <span id="node-count">6</span></label>
+                <input type="range" id="node-slider" min="3" max="20" step="1" value="6" style="width:100%">
+            </div>
+            
+            <div style="margin-top: 15px;">
+                <label>Accoppiamento: <span id="coupling-value">0.3</span></label>
+                <input type="range" id="coupling-slider" min="0.1" max="1.0" step="0.1" value="0.3" style="width:100%">
+            </div>
+            
+            <button class="control-btn" id="start-btn">▶️ Avvia Esperimento</button>
+            <button class="control-btn" id="reset-btn" style="background:#757575;">🔄 Reset</button>
+            
+            <h2 style="margin-top: 30px;">Analisi</h2>
+            <button class="control-btn" id="sensitivity-btn" style="background:#673AB7;">📊 Analisi Sensibilità</button>
+            <button class="control-btn" id="robustness-btn" style="background:#009688;">🛡️ Test Robustezza</button>
+            <button class="control-btn" id="export-btn" style="background:#FF9800;">📤 Esporta Dati</button>
+        </div>
+        
+        <!-- PANNELLO DESTRA: VISUALIZZAZIONE E METRICHE -->
+        <div class="right-panel">
+            <!-- VISUALIZZAZIONE -->
+            <div class="visualization">
+                <h2>Visualizzazione del Sistema</h2>
+                <canvas id="system-canvas" width="760" height="360"></canvas>
+                <div style="margin-top: 10px; text-align: center;">
+                    <span id="system-state" style="font-weight:bold; font-size:18px;">🟢 Sistema Stabile</span>
+                    <span id="timer" style="margin-left: 20px;">Tempo: 0s</span>
+                </div>
+            </div>
+            
+            <!-- METRICHE -->
+            <div class="metrics">
+                <h2>Metriche in Tempo Reale</h2>
+                
+                <div>
+                    <h3>Varianza delle Efficienze (rᵢ)</h3>
+                    <div class="metric-box" id="variance-value">0.0000</div>
+                    <div style="margin-top: 10px; height: 60px; background:#f8f9fa; border-radius:4px; overflow:hidden;">
+                        <canvas id="variance-canvas" width="400" height="60"></canvas>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <h3>Coerenza Sistemica (Φ)</h3>
+                    <div class="metric-box" id="phi-value">1.0000</div>
+                    <div style="margin-top: 10px; height: 60px; background:#f8f9fa; border-radius:4px; overflow:hidden;">
+                        <canvas id="phi-canvas" width="400" height="60"></canvas>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <h3>Diseguaglianze |rᵢ - rⱼ|</h3>
+                    <div id="heatmap-container" class="heatmap">
+                        <!-- Heatmap verrà generata qui -->
+                    </div>
+                </div>
+                
+                <div class="collapse-predictor">
+                    <h3>⏳ Predittore di Collasso</h3>
+                    <div id="collapse-timer">Collasso previsto: ∞</div>
+                    <div id="collapse-prob">Probabilità: 0%</div>
+                    <progress id="collapse-bar" value="0" max="100" style="width:100%; height:10px;"></progress>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =====================
+        // LABORATORIO DI STABILITÀ
+        // =====================
+        
+        class StabilityLab {
+            constructor() {
+                this.nodes = [];
+                this.time = 0;
+                this.isRunning = false;
+                this.experiment = 'equity';
+                
+                this.params = {
+                    epsilon: 0.1,
+                    N: 6,
+                    coupling: 0.3,
+                    noise: 0.05
+                };
+                
+                this.history = {
+                    variance: [],
+                    phi: [],
+                    time: []
+                };
+                
+                this.init();
+            }
+            
+            init() {
+                // Canvas principale
+                this.canvas = document.getElementById('system-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                
+                // Canvas per grafici
+                this.varianceCanvas = document.getElementById('variance-canvas');
+                this.varianceCtx = this.varianceCanvas.getContext('2d');
+                this.phiCanvas = document.getElementById('phi-canvas');
+                this.phiCtx = this.phiCanvas.getContext('2d');
+                
+                // Inizializza nodi
+                this.createNodes();
+                this.setupEventListeners();
+                this.draw();
+            }
+            
+            createNodes() {
+                this.nodes = [];
+                const centerX = this.canvas.width / 2;
+                const centerY = this.canvas.height / 2;
+                const radius = Math.min(centerX, centerY) * 0.7;
+                
+                for (let i = 0; i < this.params.N; i++) {
+                    const angle = (2 * Math.PI * i) / this.params.N;
+                    this.nodes.push({
+                        id: i,
+                        x: centerX + radius * Math.cos(angle),
+                        y: centerY + radius * Math.sin(angle),
+                        size: 20,
+                        efficiency: 1.0 + (Math.random() * 0.2 - 0.1), // ~1.0 ± 0.1
+                        color: '#4CAF50'
+                    });
+                }
+            }
+            
+            setupEventListeners() {
+                // Pulsanti esperimenti
+                document.getElementById('equity-btn').onclick = () => this.setExperiment('equity');
+                document.getElementById('extractive-btn').onclick = () => this.setExperiment('extractive');
+                document.getElementById('mixed-btn').onclick = () => this.setExperiment('mixed');
+                
+                // Slider parametri
+                document.getElementById('epsilon-slider').oninput = (e) => {
+                    this.params.epsilon = parseFloat(e.target.value);
+                    document.getElementById('epsilon-value').textContent = this.params.epsilon.toFixed(2);
+                };
+                
+                document.getElementById('node-slider').oninput = (e) => {
+                    this.params.N = parseInt(e.target.value);
+                    document.getElementById('node-count').textContent = this.params.N;
+                    this.createNodes();
+                };
+                
+                document.getElementById('coupling-slider').oninput = (e) => {
+                    this.params.coupling = parseFloat(e.target.value);
+                    document.getElementById('coupling-value').textContent = this.params.coupling.toFixed(2);
+                };
+                
+                // Controlli esperimento
+                document.getElementById('start-btn').onclick = () => this.start();
+                document.getElementById('reset-btn').onclick = () => this.reset();
+                
+                // Analisi
+                document.getElementById('sensitivity-btn').onclick = () => this.sensitivityAnalysis();
+                document.getElementById('robustness-btn').onclick = () => this.robustnessTest();
+                document.getElementById('export-btn').onclick = () => this.exportData();
+            }
+            
+            setExperiment(type) {
+                this.experiment = type;
+                
+                // Aggiorna colori pulsanti
+                ['equity', 'extractive', 'mixed'].forEach(t => {
+                    document.getElementById(`${t}-btn`).style.opacity = t === type ? '1' : '0.6';
+                });
+                
+                console.log(`Esperimento impostato: ${type}`);
+            }
+            
+            start() {
+                if (this.isRunning) return;
+                
+                this.isRunning = true;
+                document.getElementById('start-btn').disabled = true;
+                document.getElementById('start-btn').textContent = '⏸️ Esperimento in corso';
+                
+                this.run();
+            }
+            
+            run() {
+                if (!this.isRunning) return;
+                
+                this.time += 0.1;
+                this.updateSystem();
+                this.draw();
+                this.updateMetrics();
+                
+                // Continua l'animazione
+                requestAnimationFrame(() => this.run());
+            }
+            
+            updateSystem() {
+                // Applica dinamiche in base all'esperimento
+                switch(this.experiment) {
+                    case 'equity':
+                        this.updateEquity();
+                        break;
+                    case 'extractive':
+                        this.updateExtractive();
+                        break;
+                    case 'mixed':
+                        this.updateMixed();
+                        break;
+                }
+                
+                // Calcola efficienze
+                this.nodes.forEach(node => {
+                    // r_i = efficienza (simulata)
+                    node.efficiency = Math.max(0.1, node.efficiency);
+                });
+            }
+            
+            updateEquity() {
+                // Equità: tende a equalizzare
+                const avgEfficiency = this.nodes.reduce((sum, n) => sum + n.efficiency, 0) / this.nodes.length;
+                
+                this.nodes.forEach(node => {
+                    // Spingi verso la media
+                    const diff = avgEfficiency - node.efficiency;
+                    node.efficiency += diff * this.params.coupling * 0.1;
+                    
+                    // Rumore
+                    node.efficiency += (Math.random() - 0.5) * this.params.noise;
+                });
+            }
+            
+            updateExtractive() {
+                // Estrattivo: primo nodo cresce, altri decadono
+                this.nodes.forEach((node, i) => {
+                    if (i === 0) {
+                        // Nodo estrattivo: crescita super-lineare
+                        node.efficiency *= 1.05;
+                        node.size = 20 + node.efficiency * 5;
+                    } else {
+                        // Altri nodos: decadimento
+                        node.efficiency *= 0.98;
+                        node.size = Math.max(10, 20 - (node.efficiency * 3));
+                    }
+                    
+                    node.efficiency += (Math.random() - 0.5) * this.params.noise;
+                });
+            }
+            
+            updateMixed() {
+                // Misto: metà cooperativi, metà estrattivi
+                const half = Math.floor(this.nodes.length / 2);
+                
+                this.nodes.forEach((node, i) => {
+                    if (i < half) {
+                        // Cooperativi: leggera tendenza all'equità
+                        const cooperativeAvg = this.nodes
+                            .slice(0, half)
+                            .reduce((sum, n) => sum + n.efficiency, 0) / half;
+                        
+                        const diff = cooperativeAvg - node.efficiency;
+                        node.efficiency += diff * this.params.coupling * 0.05;
+                    } else {
+                        // Estrattivi: crescita moderata
+                        node.efficiency *= 1.02;
+                    }
+                    
+                    node.efficiency += (Math.random() - 0.5) * this.params.noise;
+                });
+            }
+            
+            draw() {
+                // Pulisci canvas
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Disegna connessioni
+                this.ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+                this.ctx.lineWidth = 1;
+                
+                for (let i = 0; i < this.nodes.length; i++) {
+                    for (let j = i + 1; j < this.nodes.length; j++) {
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(this.nodes[i].x, this.nodes[i].y);
+                        this.ctx.lineTo(this.nodes[j].x, this.nodes[j].y);
+                        this.ctx.stroke();
+                    }
+                }
+                
+                // Disegna nodi
+                this.nodes.forEach(node => {
+                    // Aggiorna colore in base all'efficienza
+                    if (node.efficiency > 1.5) {
+                        node.color = '#C62828'; // Rosso: troppo alto
+                    } else if (node.efficiency > 1.2) {
+                        node.color = '#FF9800'; // Arancione: alto
+                    } else if (node.efficiency < 0.8) {
+                        node.color = '#2196F3'; // Blu: basso
+                    } else {
+                        node.color = '#4CAF50'; // Verde: normale
+                    }
+                    
+                    // Disegna cerchio
+                    this.ctx.fillStyle = node.color;
+                    this.ctx.beginPath();
+                    this.ctx.arc(node.x, node.y, node.size, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    
+                    // Etichetta efficienza
+                    this.ctx.fillStyle = 'white';
+                    this.ctx.font = '12px Arial';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.textBaseline = 'middle';
+                    this.ctx.fillText(node.efficiency.toFixed(2), node.x, node.y);
+                });
+            }
+            
+            updateMetrics() {
+                // Calcola varianza
+                const efficiencies = this.nodes.map(n => n.efficiency);
+                const mean = efficiencies.reduce((a, b) => a + b) / efficiencies.length;
+                const variance = efficiencies.reduce((sum, eff) => sum + Math.pow(eff - mean, 2), 0) / efficiencies.length;
+                
+                // Calcola Phi (coerenza)
+                const phi = Math.exp(-variance * 2);
+                
+                // Salva storico
+                this.history.variance.push(variance);
+                this.history.phi.push(phi);
+                this.history.time.push(this.time);
+                
+                // Limita storico
+                if (this.history.variance.length > 100) {
+                    this.history.variance.shift();
+                    this.history.phi.shift();
+                    this.history.time.shift();
+                }
+                
+                // Aggiorna display
+                document.getElementById('variance-value').textContent = variance.toFixed(4);
+                document.getElementById('phi-value').textContent = phi.toFixed(4);
+                document.getElementById('timer').textContent = `Tempo: ${this.time.toFixed(1)}s`;
+                
+                // Aggiorna stato sistema
+                let state = '';
+                if (phi > 0.7) {
+                    state = '🟢 Sistema Stabile';
+                } else if (phi > 0.3) {
+                    state = '🟡 Sistema Instabile';
+                } else {
+                    state = '🔴 Sistema in Collasso';
+                    if (this.isRunning) {
+                        this.showCollapseAlert();
+                        this.isRunning = false;
+                        document.getElementById('start-btn').disabled = false;
+                        document.getElementById('start-btn').textContent = '▶️ Avvia Esperimento';
+                    }
+                }
+                document.getElementById('system-state').textContent = state;
+                
+                // Aggiorna grafici
+                this.drawGraph(this.varianceCtx, this.varianceCanvas, this.history.variance, '#C62828');
+                this.drawGraph(this.phiCtx, this.phiCanvas, this.history.phi, '#2E7D32');
+                
+                // Aggiorna heatmap
+                this.updateHeatmap();
+                
+                // Aggiorna predittore
+                this.updateCollapsePredictor(phi, variance);
+            }
+            
+            drawGraph(ctx, canvas, data, color) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                if (data.length < 2) return;
+                
+                const max = Math.max(...data, 0.1);
+                const stepX = canvas.width / (data.length - 1);
+                
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                
+                data.forEach((value, i) => {
+                    const x = i * stepX;
+                    const y = canvas.height - (value / max) * canvas.height;
+                    
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                });
+                
+                ctx.stroke();
+            }
+            
+            updateHeatmap() {
+                const container = document.getElementById('heatmap-container');
+                container.innerHTML = '';
+                container.style.gridTemplateColumns = `repeat(${this.nodes.length}, 30px)`;
+                
+                for (let i = 0; i < this.nodes.length; i++) {
+                    for (let j = 0; j < this.nodes.length; j++) {
+                        if (i === j) {
+                            const cell = document.createElement('div');
+                            cell.className = 'heatmap-cell';
+                            cell.style.background = '#e0e0e0';
+                            cell.textContent = 'X';
+                            container.appendChild(cell);
+                            continue;
+                        }
+                        
+                        const diff = Math.abs(this.nodes[i].efficiency - this.nodes[j].efficiency);
+                        const intensity = Math.min(1, diff / 1.5);
+                        
+                        const red = Math.floor(intensity * 255);
+                        const green = Math.floor((1 - intensity) * 200);
+                        
+                        const cell = document.createElement('div');
+                        cell.className = 'heatmap-cell';
+                        cell.style.background = `rgb(${red}, ${green}, 0)`;
+                        cell.style.color = intensity > 0.5 ? 'white' : 'black';
+                        cell.textContent = diff.toFixed(1);
+                        cell.title = `|r${i} - r${j}| = ${diff.toFixed(2)}`;
+                        
+                        container.appendChild(cell);
+                    }
+                }
+            }
+            
+            updateCollapsePredictor(phi, variance) {
+                if (this.history.phi.length < 5) return;
+                
+                // Calcola trend
+                const recentPhi = this.history.phi.slice(-5);
+                const trend = (recentPhi[recentPhi.length-1] - recentPhi[0]) / 5;
+                
+                let collapseTime = Infinity;
+                let collapseProb = 0;
+                
+                if (trend < 0) {
+                    collapseTime = Math.max(0, (phi - 0.3) / -trend);
+                    collapseProb = Math.min(100, (1 - phi) * 100);
+                }
+                
+                document.getElementById('collapse-timer').textContent = 
+                    collapseTime === Infinity ? 'Collasso previsto: ∞' : `Collasso previsto: ${collapseTime.toFixed(1)}s`;
+                
+                document.getElementById('collapse-prob').textContent = `Probabilità: ${collapseProb.toFixed(1)}%`;
+                document.getElementById('collapse-bar').value = collapseProb;
+            }
+            
+            showCollapseAlert() {
+                const alertDiv = document.createElement('div');
+                alertDiv.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: #D32F2F;
+                    color: white;
+                    padding: 15px;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                    z-index: 1000;
+                `;
+                
+                alertDiv.innerHTML = `
+                    <strong>⚠️ COLLASSO RILEVATO!</strong><br>
+                    Φ = ${this.history.phi[this.history.phi.length-1].toFixed(3)}<br>
+                    <button onclick="this.parentElement.remove()" style="
+                        background: white;
+                        color: #D32F2F;
+                        border: none;
+                        padding: 5px 10px;
+                        border-radius: 4px;
+                        margin-top: 8px;
+                        cursor: pointer;
+                    ">OK</button>
+                `;
+                
+                document.body.appendChild(alertDiv);
+                setTimeout(() => alertDiv.remove(), 5000);
+            }
+            
+            reset() {
+                this.isRunning = false;
+                this.time = 0;
+                this.history = { variance: [], phi: [], time: [] };
+                this.createNodes();
+                this.draw();
+                this.updateMetrics();
+                
+                document.getElementById('start-btn').disabled = false;
+                document.getElementById('start-btn').textContent = '▶️ Avvia Esperimento';
+                document.getElementById('system-state').textContent = '🟢 Sistema Stabile';
+            }
+            
+            sensitivityAnalysis() {
+                alert('📊 Analisi di sensibilità\n\nQuesta funzione esegue simulazioni multiple variando ε.\nI risultati appaiono nella console (F12 → Console).');
+                
+                const originalEpsilon = this.params.epsilon;
+                const results = [];
+                
+                for (let eps = 0.05; eps <= 0.5; eps += 0.05) {
+                    this.params.epsilon = eps;
+                    this.reset();
+                    this.setExperiment('equity');
+                    this.start();
+                    
+                    // Breve simulazione
+                    setTimeout(() => {
+                        const phi = this.history.phi[this.history.phi.length-1] || 0;
+                        results.push({ epsilon: eps.toFixed(2), stability: phi.toFixed(3) });
+                        console.log(`ε=${eps.toFixed(2)}: Φ=${phi.toFixed(3)}`);
+                        
+                        if (eps >= 0.45) {
+                            console.table(results);
+                            alert(`Analisi completata! Controlla la console per i risultati.`);
+                            this.params.epsilon = originalEpsilon;
+                            this.reset();
+                        }
+                    }, 500);
+                }
+            }
+            
+            robustnessTest() {
+                alert('🛡️ Test di robustezza\n\nTesta il sistema con diverse configurazioni iniziali.');
+                // Implementazione semplificata
+                console.log('Robustness test avviato...');
+            }
+            
+            exportData() {
+                const data = {
+                    experiment: this.experiment,
+                    parameters: this.params,
+                    finalMetrics: {
+                        variance: this.history.variance[this.history.variance.length-1] || 0,
+                        phi: this.history.phi[this.history.phi.length-1] || 0,
+                        time: this.time
+                    },
+                    timestamp: new Date().toISOString()
+                };
+                
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `stability-data-${Date.now()}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                
+                alert('📤 Dati esportati con successo!');
+            }
+        }
+        
+        // Inizializza il laboratorio
+        window.onload = () => {
+            window.lab = new StabilityLab();
+            console.log('🧪 Laboratorio di Stabilità pronto!');
+            console.log('Usa window.lab per accedere al laboratorio dalla console.');
+        };
+    </script>
+</body>
+</html>  

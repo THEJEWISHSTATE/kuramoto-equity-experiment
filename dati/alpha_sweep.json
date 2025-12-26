@@ -1,0 +1,46 @@
+{
+  "metadata": {
+    "experimento": "Scansione α critico - Sistema Equo vs Iniquo",
+    "data": "2025-12-26",
+    "oscillatori": 50,
+    "passi_tempo": 1000,
+    "repliche": 10
+  },
+  "scoperte_principali": [
+    "Sistema EQUO: Transizione di fase a α≈0.25-0.30",
+    "Sistema INIQUO: Mai stabilmente sincronizzato",
+    "Stabilità intrinseca dei sistemi equi",
+    "Comportamento caotico dei sistemi diseguali"
+  ],
+  "dati_sperimentali": [
+    {"alpha": 0.2, "equo_R": 0.216, "iniquo_R": 0.848, "equo_stato": "non_sincronizzato", "iniquo_stato": "instabile"},
+    {"alpha": 0.25, "equo_R": 0.512, "iniquo_R": 0.821, "equo_stato": "transizione", "iniquo_stato": "instabile"},
+    {"alpha": 0.3, "equo_R": 0.858, "iniquo_R": 0.809, "equo_stato": "sincronizzato", "iniquo_stato": "instabile"},
+    {"alpha": 0.4, "equo_R": 0.925, "iniquo_R": 0.724, "equo_stato": "stabile", "iniquo_stato": "instabile"},
+    {"alpha": 0.5, "equo_R": 0.944, "iniquo_R": 0.785, "equo_stato": "stabile", "iniquo_stato": "instabile"},
+    {"alpha": 0.6, "equo_R": 0.951, "iniquo_R": 0.702, "equo_stato": "stabile", "iniquo_stato": "instabile"},
+    {"alpha": 0.7, "equo_R": 0.955, "iniquo_R": 0.661, "equo_stato": "stabile", "iniquo_stato": "instabile"},
+    {"alpha": 0.8, "equo_R": 0.956, "iniquo_R": 0.635, "equo_stato": "stabile", "iniquo_stato": "instabile"},
+    {"alpha": 0.9, "equo_R": 0.956, "iniquo_R": 0.618, "equo_stato": "stabile", "iniquo_stato": "instabile"},
+    {"alpha": 1.0, "equo_R": 0.956, "iniquo_R": 0.591, "equo_stato": "stabile", "iniquo_stato": "instabile"},
+    {"alpha": 1.1, "equo_R": 0.955, "iniquo_R": 0.573, "equo_stato": "stabile", "iniquo_stato": "instabile"},
+    {"alpha": 1.2, "equo_R": 0.954, "iniquo_R": 0.556, "equo_stato": "stabile", "iniquo_stato": "instabile"},
+    {"alpha": 1.3, "equo_R": 0.952, "iniquo_R": 0.542, "equo_stato": "stabile", "iniquo_stato": "instabile"},
+    {"alpha": 1.4, "equo_R": 0.950, "iniquo_R": 0.528, "equo_stato": "stabile", "iniquo_stato": "instabile"},
+    {"alpha": 1.5, "equo_R": 0.948, "iniquo_R": 0.516, "equo_stato": "stabile", "iniquo_stato": "instabile"},
+    {"alpha": 1.6, "equo_R": 0.945, "iniquo_R": 0.505, "equo_stato": "stabile", "iniquo_stato": "instabile"},
+    {"alpha": 1.7, "equo_R": 0.942, "iniquo_R": 0.495, "equo_stato": "stabile", "iniquo_stato": "instabile"},
+    {"alpha": 1.8, "equo_R": 0.939, "iniquo_R": 0.486, "equo_stato": "stabile", "iniquo_stato": "instabile"},
+    {"alpha": 1.9, "equo_R": 0.935, "iniquo_R": 0.478, "equo_stato": "stabile", "iniquo_stato": "instabile"},
+    {"alpha": 2.0, "equo_R": 0.932, "iniquo_R": 0.470, "equo_stato": "stabile", "iniquo_stato": "instabile"},
+    {"alpha": 2.1, "equo_R": 0.928, "iniquo_R": 0.463, "equo_stato": "stabile", "iniquo_stato": "instabile"},
+    {"alpha": 2.2, "equo_R": 0.924, "iniquo_R": 0.456, "equo_stato": "stabile", "iniquo_stato": "instabile"},
+    {"alpha": 2.3, "equo_R": 0.920, "iniquo_R": 0.450, "equo_stato": "stabile", "iniquo_stato": "instabile"},
+    {"alpha": 2.4, "equo_R": 0.916, "iniquo_R": 0.444, "equo_stato": "stabile", "iniquo_stato": "instabile"},
+    {"alpha": 2.5, "equo_R": 0.912, "iniquo_R": 0.438, "equo_stato": "stabile", "iniquo_stato": "instabile"},
+    {"alpha": 2.6, "equo_R": 0.908, "iniquo_R": 0.433, "equo_stato": "stabile", "iniquo_stato": "instabile"},
+    {"alpha": 2.7, "equo_R": 0.904, "iniquo_R": 0.428, "equo_stato": "stabile", "iniquo_stato": "instabile"},
+    {"alpha": 2.8, "equo_R": 0.900, "iniquo_R": 0.423, "equo_stato": "stabile", "iniquo_stato": "instabile"},
+    {"alpha": 2.9, "equo_R": 0.896, "iniquo_R": 0.418, "equo_stato": "stabile", "iniquo_stato": "instabile"}
+  ]
+}

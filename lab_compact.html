@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>🧠 Kuramoto Lab Compact</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font: 22px 'Arial'; background: #FFF; color: #000; padding: 15px; }
+        .container { max-width: 900px; margin: auto; }
+        
+        header { text-align: center; margin: 15px 0; padding-bottom: 15px; border-bottom: 2px solid #000; }
+        h1 { font-size: 34px; margin: 10px 0; }
+        .subtitle { font-size: 20px; color: #333; margin-bottom: 15px; }
+        
+        /* VISUALIZZAZIONE COMPATTA */
+        .viz-container { 
+            background: #FFF; 
+            border: 2px solid #000; 
+            border-radius: 8px; 
+            padding: 10px; 
+            margin: 15px 0; 
+        }
+        canvas { display: block; margin: auto; background: #FFF; }
+        
+        /* CONTROLLI COMPATTI */
+        .controls { 
+            background: #F0F0F0; 
+            border: 2px solid #000; 
+            border-radius: 8px; 
+            padding: 15px; 
+            margin: 15px 0; 
+        }
+        .btn-row { display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0; justify-content: center; }
+        .btn { 
+            font-size: 20px; 
+            padding: 12px 20px; 
+            border: 2px solid #000; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            min-width: 140px; 
+        }
+        .btn-main { background: #000; color: #FFF; }
+        .btn-second { background: #FFF; color: #000; }
+        
+        /* SLIDER COMPATTI */
+        .slider-box { margin: 15px 0; text-align: center; }
+        label { display: block; font-size: 20px; font-weight: bold; margin-bottom: 8px; }
+        .value { font-size: 24px; font-weight: bold; display: inline-block; min-width: 50px; }
+        input[type="range"] { width: 80%; height: 30px; margin: 8px 0; }
+        
+        /* METRICHE COMPATTE */
+        .metrics { 
+            background: #FFF; 
+            border: 2px solid #000; 
+            border-radius: 8px; 
+            padding: 15px; 
+            margin: 15px 0; 
+        }
+        .metric-row { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
+            gap: 15px; 
+            margin: 15px 0; 
+        }
+        .metric { 
+            background: #F8F8F8; 
+            border: 1px solid #000; 
+            border-radius: 6px; 
+            padding: 12px; 
+            text-align: center; 
+        }
+        .metric-title { font-size: 18px; font-weight: bold; margin-bottom: 8px; }
+        .metric-value { font-size: 32px; font-weight: bold; margin: 5px 0; }
+        
+        /* AI LIST COMPATTA */
+        .ai-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); 
+            gap: 10px; 
+            margin-top: 10px; 
+        }
+        .ai-item { 
+            background: #FFF; 
+            border: 1px solid #333; 
+            border-radius: 5px; 
+            padding: 8px; 
+            text-align: center; 
+            font-size: 16px; 
+        }
+        
+        /* GRAFICO COMPATTO */
+        .graph-box { 
+            height: 60px; 
+            background: #F5F5F5; 
+            border: 1px solid #000; 
+            border-radius: 4px; 
+            margin-top: 10px; 
+            overflow: hidden; 
+        }
+        
+        /* STATUS */
+        .status { 
+            text-align: center; 
+            padding: 10px; 
+            margin: 10px 0; 
+            border-radius: 6px; 
+            font-size: 20px; 
+            font-weight: bold; 
+            border: 2px solid #000; 
+            background: #E8F5E8; 
+        }
+        
+        footer { 
+            text-align: center; 
+            margin-top: 20px; 
+            padding-top: 10px; 
+            border-top: 1px solid #000; 
+            font-size: 16px; 
+            color: #333; 
+        }
+        
+        /* ACCESSIBILITÀ */
+        :focus { outline: 2px solid #0066CC !important; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- INTESTAZIONE -->
+        <header>
+            <h1>🧠 KU RAMOTO LAB</h1>
+            <div class="subtitle">Versione Compatta - Sincronizzazione AI</div>
+        </header>
+        
+        <!-- VISUALIZZAZIONE -->
+        <div class="viz-container">
+            <canvas id="mainCanvas" width="700" height="300"></canvas>
+            <div class="status" id="status">⏸️ IN PAUSA</div>
+        </div>
+        
+        <!-- CONTROLLI PRINCIPALI -->
+        <div class="controls">
+            <!-- PULSANTI -->
+            <div class="btn-row">
+                <button class="btn btn-main" onclick="startSim()">▶️ AVVIA</button>
+                <button class="btn btn-second" onclick="pauseSim()">⏸️ PAUSA</button>
+                <button class="btn btn-second" onclick="resetSim()">🔄 RESET</button>
+                <button class="btn btn-main" onclick="freezeMetrics()">📊 CONGELA R</button>
+            </div>
+            
+            <!-- SLIDERS -->
+            <div class="slider-box">
+                <label>🐌 Velocità: <span class="value" id="speedVal">1.0x</span></label>
+                <input type="range" id="speedSlider" min="0.1" max="3" step="0.1" value="1.0">
+            </div>
+            
+            <div class="slider-box">
+                <label>α (Accoppiamento): <span class="value" id="alphaVal">1.0</span></label>
+                <input type="range" id="alphaSlider" min="0" max="3" step="0.1" value="1.0">
+            </div>
+            
+            <!-- ESPORTAZIONE DATI (NUOVO) -->
+            <div class="btn-row">
+                <button class="btn btn-main" onclick="exportData()" style="background:#0088FF; border-color:#0066CC;">
+                    📤 ESPORTA CSV
+                </button>
+                <button class="btn btn-second" onclick="exportSnapshot()">
+                    📷 ISTANTANEA JSON
+                </button>
+            </div>
+            
+            <!-- TASTI RAPIDI -->
+            <div style="text-align:center; font-size:18px; margin-top:10px; color:#666;">
+                <strong>⌨️ Tasti:</strong> Spazio=Start/Pause | R=Reset | F=Congela | E=Esporta
+            </div>
+        </div>
+        
+        <!-- METRICHE -->
+        <div class="metrics">
+            <div class="metric-row">
+                <div class="metric">
+                    <div class="metric-title">SINCRONIZZAZIONE (R)</div>
+                    <div class="metric-value" id="rValue">0.000</div>
+                    <div class="graph-box">
+                        <canvas id="rGraph" width="300" height="60"></canvas>
+                    </div>
+                </div>
+                
+                <div class="metric">
+                    <div class="metric-title">TEMPO</div>
+                    <div class="metric-value" id="timeValue">0.0s</div>
+                    <div id="timeStatus" style="font-size:16px;">Fermo</div>
+                </div>
+                
+                <div class="metric">
+                    <div class="metric-title">AI ATTIVE</div>
+                    <div class="metric-value" id="aiCount">6</div>
+                    <div id="syncInfo" style="font-size:16px;">---</div>
+                </div>
+            </div>
+            
+            <!-- AI AGENTS -->
+            <div style="margin-top:15px;">
+                <div class="metric-title">🤖 AGENTS</div>
+                <div class="ai-grid" id="aiList"></div>
+                <div style="text-align:center; margin-top:10px;">
+                    <button class="btn btn-second" onclick="addAI()" style="font-size:16px; padding:8px 12px;">+ AI</button>
+                    <button class="btn btn-second" onclick="removeAI()" style="font-size:16px; padding:8px 12px;">- AI</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ESPERIMENTI RAPIDI -->
+        <div class="controls" style="background:#E8F5E8;">
+            <div class="metric-title">🧪 ESPERIMENTI RAPIDI</div>
+            <div class="btn-row">
+                <button class="btn btn-second" onclick="runExp('caos')">🌀 CAOS (α=0.1)</button>
+                <button class="btn btn-second" onclick="runExp('ordine')">🎯 ORDINE (α=2.5)</button>
+                <button class="btn btn-main" onclick="runExp('transizione')">⚡ TRANSIZIONE</button>
+            </div>
+        </div>
+        
+        <!-- FOOTER -->
+        <footer>
+            <p>🔬 Lab Kuramoto Compact - Con esportazione dati</p>
+            <p>📁 File: <strong>lab_compact.html</strong></p>
+        </footer>
+    </div>
+
+    <script>
+        // ============================================
+        // KU RAMOTO LAB - VERSIONE CON ESPORTAZIONE
+        // ============================================
+        
+        // ELEMENTI
+        const canvas = document.getElementById('mainCanvas');
+        const ctx = canvas.getContext('2d');
+        const rGraph = document.getElementById('rGraph');
+        const rCtx = rGraph.getContext('2d');
+        
+        // STATO
+        let isRunning = false;
+        let time = 0;
+        let speed = 1.0;
+        let frozen = false;
+        let frozenR = 0;
+        
+        // OSCILLATORI (CON FASI CASUALI E FREQUENZE DIVERSE)
+        let oscillators = [];
+        const aiNames = ['Claude', 'GPT', 'Gemini', 'Llama', 'Mistral', 'Copilot'];
+        const aiColors = ['#000', '#333', '#666', '#999', '#BBB', '#444'];
+        
+        // STORICO
+        let rHistory = [];
+        const MAX_HIST = 30;
+        
+        // INIZIALIZZA
+        function init() {
+            oscillators = [];
+            time = 0;
+            rHistory = [];
+            
+            // 6 OSCILLATORI CON FASI CASUALI E FREQUENZE DIVERSE
+            for (let i = 0; i < 6; i++) {
+                oscillators.push({
+                    id: i,
+                    name: aiNames[i],
+                    phase: Math.random() * 2 * Math.PI, // CASUALE
+                    freq: 0.5 + Math.random() * 1.0,   // DIVERSA (0.5-1.5)
+                    size: 18,
+                    color: aiColors[i]
+                });
+            }
+            
+            updateDisplay();
+            draw();
+            updateAIList();
+        }
+        
+        // DISEGNA
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            const r = 120;
+            
+            // CERCHIO PRINCIPALE
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // DISEGNA OSCILLATORI
+            oscillators.forEach(o => {
+                // POSIZIONE
+                o.x = cx + r * Math.cos(o.phase);
+                o.y = cy + r * Math.sin(o.phase);
+                
+                // LINEA AL CENTRO
+                ctx.strokeStyle = '#CCC';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.lineTo(o.x, o.y);
+                ctx.stroke();
+                
+                // CERCHIO AI
+                ctx.fillStyle = o.color;
+                ctx.beginPath();
+                ctx.arc(o.x, o.y, o.size, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // BORDO
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // NOME
+                ctx.fillStyle = '#000';
+                ctx.font = 'bold 14px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(o.name, o.x, o.y - 25);
+                
+                // FASE IN GRADI
+                const deg = Math.round((o.phase * 180 / Math.PI) % 360);
+                ctx.font = '12px Arial';
+                ctx.fillText(`${deg}°`, o.x, o.y + 20);
+            });
+            
+            // CALCOLA R
+            updateMetrics();
+        }
+        
+        // CALCOLA METRICHE
+        function updateMetrics() {
+            if (oscillators.length === 0) return;
+            
+            // CALCOLA R
+            let sx = 0, sy = 0;
+            oscillators.forEach(o => {
+                sx += Math.cos(o.phase);
+                sy += Math.sin(o.phase);
+            });
+            
+            const N = oscillators.length;
+            let R = Math.sqrt(sx*sx + sy*sy) / N;
+            
+            // STORICO
+            rHistory.push(R);
+            if (rHistory.length > MAX_HIST) rHistory.shift();
+            
+            // MEDIA MOBILE (3 valori)
+            let avgR = R;
+            if (rHistory.length >= 3) {
+                avgR = (rHistory[rHistory.length-1] + 
+                       rHistory[rHistory.length-2] + 
+                       rHistory[rHistory.length-3]) / 3;
+            }
+            
+            // VALORE DA MOSTRARE (congelato o reale)
+            const displayR = frozen ? frozenR : avgR;
+            document.getElementById('rValue').textContent = displayR.toFixed(3);
+            
+            // STATO SINCRONIZZAZIONE
+            const syncInfo = document.getElementById('syncInfo');
+            if (displayR > 0.8) {
+                syncInfo.textContent = 'ALTA';
+                syncInfo.style.color = '#000';
+            } else if (displayR > 0.4) {
+                syncInfo.textContent = 'MEDIA';
+                syncInfo.style.color = '#666';
+            } else {
+                syncInfo.textContent = 'BASSA';
+                syncInfo.style.color = '#999';
+            }
+            
+            // GRAFICO R
+            drawRGraph(R);
+            
+            return avgR;
+        }
+        
+        // GRAFICO R
+        function drawRGraph(currentR) {
+            rCtx.clearRect(0, 0, rGraph.width, rGraph.height);
+            
+            if (rHistory.length < 2) return;
+            
+            // LINEA
+            rCtx.strokeStyle = '#000';
+            rCtx.lineWidth = 2;
+            rCtx.beginPath();
+            
+            const step = rGraph.width / (rHistory.length - 1);
+            
+            rHistory.forEach((r, i) => {
+                const x = i * step;
+                const y = rGraph.height - (r * rGraph.height);
+                
+                if (i === 0) rCtx.moveTo(x, y);
+                else rCtx.lineTo(x, y);
+            });
+            
+            rCtx.stroke();
+            
+            // PUNTO CORRENTE
+            const lastX = (rHistory.length - 1) * step;
+            const lastY = rGraph.height - (currentR * rGraph.height);
+            
+            rCtx.fillStyle = '#000';
+            rCtx.beginPath();
+            rCtx.arc(lastX, lastY, 3, 0, Math.PI * 2);
+            rCtx.fill();
+        }
+        
+        // SIMULAZIONE
+        function simulate() {
+            if (!isRunning) return;
+            
+            time += 0.04 * speed;
+            
+            const alpha = parseFloat(document.getElementById('alphaSlider').value);
+            const N = oscillators.length;
+            
+            // EQUAZIONE DI KU RAMOTO
+            oscillators.forEach(o => {
+                let sum = 0;
+                oscillators.forEach(other => {
+                    if (o.id !== other.id) {
+                        sum += Math.sin(other.phase - o.phase);
+                    }
+                });
+                
+                o.phase += (o.freq + (alpha / N) * sum) * 0.04 * speed;
+                o.phase %= (2 * Math.PI);
+                
+                // PICCOLO RUMORE NATURALE
+                o.phase += (Math.random() - 0.5) * 0.01;
+            });
+            
+            draw();
+            updateDisplay();
+            requestAnimationFrame(simulate);
+        }
+        
+        // DISPLAY
+        function updateDisplay() {
+            if (!frozen) {
+                document.getElementById('timeValue').textContent = time.toFixed(1) + 's';
+                document.getElementById('aiCount').textContent = oscillators.length;
+            }
+        }
+        
+        // LISTA AI
+        function updateAIList() {
+            const list = document.getElementById('aiList');
+            list.innerHTML = '';
+            
+            oscillators.forEach(o => {
+                const deg = Math.round((o.phase * 180 / Math.PI) % 360);
+                const item = document.createElement('div');
+                item.className = 'ai-item';
+                item.innerHTML = `
+                    <div style="font-weight:bold;">${o.name}</div>
+                    <div>${deg}°</div>
+                `;
+                list.appendChild(item);
+            });
+        }
+        
+        // CONTROLLI UTENTE
+        function startSim() { 
+            isRunning = true; 
+            document.getElementById('status').textContent = '▶️ IN CORSO';
+            document.getElementById('status').style.background = '#E8F5E8';
+            simulate(); 
+        }
+        
+        function pauseSim() { 
+            isRunning = false; 
+            document.getElementById('status').textContent = '⏸️ IN PAUSA';
+            document.getElementById('status').style.background = '#FFF8E1';
+        }
+        
+        function resetSim() { 
+            isRunning = false; 
+            frozen = false;
+            init(); 
+            document.getElementById('status').textContent = '🔄 RESETTATO';
+            document.getElementById('status').style.background = '#E3F2FD';
+        }
+        
+        function freezeMetrics() {
+            frozen = !frozen;
+            if (frozen) {
+                frozenR = parseFloat(document.getElementById('rValue').textContent);
+                document.getElementById('timeStatus').textContent = 'Congelato';
+            } else {
+                document.getElementById('timeStatus').textContent = 'Attivo';
+            }
+        }
+        
+        // ESPERIMENTI
+        function runExp(type) {
+            const alphaSlider = document.getElementById('alphaSlider');
+            
+            switch(type) {
+                case 'caos':
+                    alphaSlider.value = 0.1;
+                    document.getElementById('alphaVal').textContent = '0.1';
+                    resetSim();
+                    document.getElementById('status').textContent = '🌀 CAOS (α=0.1)';
+                    break;
+                    
+                case 'ordine':
+                    alphaSlider.value = 2.5;
+                    document.getElementById('alphaVal').textContent = '2.5';
+                    resetSim();
+                    document.getElementById('status').textContent = '🎯 ORDINE (α=2.5)';
+                    break;
+                    
+                case 'transizione':
+                    alphaSlider.value = 0.1;
+                    document.getElementById('alphaVal').textContent = '0.1';
+                    resetSim();
+                    setTimeout(() => {
+                        alphaSlider.value = 1.5;
+                        document.getElementById('alphaVal').textContent = '1.5';
+                        document.getElementById('status').textContent = '⚡ TRANSIZIONE';
+                    }, 3000);
+                    break;
+            }
+        }
+        
+        function addAI() {
+            if (oscillators.length >= 10) return;
+            
+            const id = oscillators.length;
+            oscillators.push({
+                id: id,
+                name: `AI-${id+1}`,
+                phase: Math.random() * 2 * Math.PI,
+                freq: 0.5 + Math.random() * 1.0,
+                size: 16,
+                color: '#777'
+            });
+            
+            updateAIList();
+            updateDisplay();
+        }
+        
+        function removeAI() {
+            if (oscillators.length <= 2) return;
+            oscillators.pop();
+            updateAIList();
+            updateDisplay();
+        }
+        
+        // ESPORTAZIONE DATI (NUOVO)
+        function exportData() {
+            if (rHistory.length === 0) {
+                alert("Nessun dato da esportare! Avvia prima la simulazione.");
+                return;
+            }
+            
+            // Crea CSV
+            let csv = "Tempo(s),R_Sincronizzazione,Alpha,Num_AI\n";
+            
+            // Aggiungi dati
+            for (let i = 0; i < rHistory.length; i += 2) {
+                const t = (i / rHistory.length) * time;
+                const r = rHistory[i];
+                const alpha = document.getElementById('alphaSlider').value;
+                const numAI = oscillators.length;
+                
+                csv += `${t.toFixed(2)},${r.toFixed(4)},${alpha},${numAI}\n`;
+            }
+            
+            // Scarica file
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `kuramoto_data_${new Date().toISOString().slice(0,10)}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            alert(`✅ Dati esportati: ${rHistory.length} punti`);
+        }
+        
+        function exportSnapshot() {
+            const snapshot = {
+                timestamp: new Date().toISOString(),
+                parameters: {
+                    alpha: document.getElementById('alphaSlider').value,
+                    speed: document.getElementById('speedSlider').value,
+                    numOscillators: oscillators.length
+                },
+                oscillators: oscillators.map(o => ({
+                    name: o.name,
+                    phase: o.phase,
+                    phase_deg: Math.round((o.phase * 180 / Math.PI) % 360),
+                    frequency: o.freq
+                })),
+                metrics: {
+                    currentR: parseFloat(document.getElementById('rValue').textContent),
+                    averageR: rHistory.length > 0 ? 
+                        rHistory.reduce((a,b) => a+b) / rHistory.length : 0,
+                    timeElapsed: time
+                }
+            };
+            
+            const jsonStr = JSON.stringify(snapshot, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `kuramoto_snapshot_${Date.now()}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            alert("📷 Istantanea JSON salvata!");
+        }
+        
+        // EVENT LISTENERS
+        document.addEventListener('DOMContentLoaded', () => {
+            // SLIDERS
+            document.getElementById('speedSlider').addEventListener('input', function() {
+                speed = parseFloat(this.value);
+                document.getElementById('speedVal').textContent = this.value + 'x';
+            });
+            
+            document.getElementById('alphaSlider').addEventListener('input', function() {
+                document.getElementById('alphaVal').textContent = this.value;
+            });
+            
+            // TASTI
+            document.addEventListener('keydown', (e) => {
+                switch(e.key) {
+                    case ' ': startSim(); break;
+                    case 'r': case 'R': resetSim(); break;
+                    case 'f': case 'F': freezeMetrics(); break;
+                    case 'e': case 'E': exportData(); break;
+                }
+            });
+            
+            // INIZIO
+            init();
+            
+            console.log('✅ Lab Kuramoto con esportazione pronto!');
+        });
+    </script>
+</body>
+</html>
